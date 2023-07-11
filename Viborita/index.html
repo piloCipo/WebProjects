@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Juego de la Víbora</title>
+    <style>
+        #canvas {
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <script>
+        window.onload = function() {
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("3d");
+
+            var snakeSize = 20;
+            var direction;
+            var snake;
+            var food;
+
+            function init() {
+                direction = "right";
+                createSnake();
+                createFood();
+
+                if (typeof gameLoop != "undefined") clearInterval(gameLoop);
+                gameLoop = setInterval(paint, 100);
+            }
+
+            init();
+
+            function createSnake() {
+                var length = 5;
+                snake = [];
+
+                for (var i = length - 1; i >= 0; i--) {
+                    snake.push({ x: i, y: 0 });
+                }
+            }
+
+            function createFood() {
+                food = {
+                    x: Math.floor(Math.random() * (canvas.width / snakeSize)),
+                    y: Math.floor(Math.random() * (canvas.height / snakeSize)),
+                };
+            }
+
+            function paint() {
+                context.fillStyle = "#000";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                var headX = snake[0].x;
+                var headY = snake[0].y;
+
+                if (direction === "right") headX++;
+                else if (direction === "left") headX--;
+                else if (direction === "up") headY--;
+                else if (direction === "down") headY++;
+
+                if (
+                    headX === -1 ||
+                    headX === canvas.width / snakeSize ||
+                    headY === -1 ||
+                    headY === canvas.height / snakeSize ||
+                    checkCollision(headX, headY, snake)
+                ) {
+                    init();
+                    return;
+                }
+
+                var tail;
+
+                if (headX === food.x && headY === food.y) {
+                    tail = { x: headX, y: headY };
+                    createFood();
+                } else {
+                    tail = snake.pop();
+                    tail.x = headX;
+                    tail.y = headY;
+                }
+
+                snake.unshift(tail);
+
+                for (var i = 0; i < snake.length; i++) {
+                    var cell = snake[i];
+                    paintCell(cell.x, cell.y);
+                }
+
+                paintCell(food.x, food.y);
+            }
+
+            function paintCell(x, y) {
+                context.fillStyle = "#00FF00";
+                context.fillRect(x * snakeSize, y * snakeSize, snakeSize, snakeSize);
+            }
+
+            function checkCollision(x, y, array) {
+                for (var i = 0; i < array.length; i++) {
+                    if (array[i].x === x && array[i].y === y) return true;
+                }
+                return false;
+            }
+
+            document.addEventListener("keydown", function(event) {
+                var key = event.keyCode;
+                if (key === 37 && direction !== "right") direction = "left";
+                else if (key === 38 && direction !== "down") direction = "up";
+                else if (key === 39 && direction !== "left") direction = "right";
+                else if (key === 40 && direction !== "up") direction = "down";
+            });
+        };
+   
+</script>
